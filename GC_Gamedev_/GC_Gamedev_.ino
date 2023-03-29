@@ -12,12 +12,15 @@ LCDWIKI_SPI my_lcd(MODEL,CS,CD,RST,LED);
 
 uint8_t player_input = 64;
 uint8_t player_pos = 64;
-uint8_t ball_pos[2] = {64, 16};
+uint8_t bot_pos = 64;
+uint8_t new_bot_pos = 0;
+uint8_t ball_pos[2] = {64, 64};
 int8_t ball_speed[2] = {0, 4};
 float pos_store = 0;
 uint8_t clock = 0;
 uint8_t speed = 3;
 uint8_t blocks[8] = {0};
+uint8_t blocks2[8] = {0};
 int score = 0;
 
 
@@ -35,6 +38,19 @@ void get_input() {
   // Serial.print("Xa= ");
   // Serial.println(X_out);
   // Serial.println(player_input);   
+}
+
+void start_game() {
+  for(int i=64-8;i<=64+8;i++) {
+    my_lcd.Draw_Pixe(i, 10, 0x0F0F);
+    my_lcd.Draw_Pixe(i, 11, 0x0F0F);
+  }
+
+  for(int i=64-8;i<=64+8;i++) {
+    my_lcd.Draw_Pixe(i, 120, 0xF0F0);
+    my_lcd.Draw_Pixe(i, 121, 0xF0F0);
+  }
+  delay(1000);
 }
 
 void setup() {
@@ -89,8 +105,8 @@ void render_player() {
   }
   for(int i=player_input-8;i<=player_input+8;i++) {
     if(i-player_pos > 8 || i-player_pos < -8) {
-      my_lcd.Draw_Pixe(i, 10, 0xFFFF);
-      my_lcd.Draw_Pixe(i, 11, 0xFFFF);
+      my_lcd.Draw_Pixe(i, 10, 0x0F0F);
+      my_lcd.Draw_Pixe(i, 11, 0x0F0F);
     }
   }
   
@@ -145,15 +161,28 @@ void collision_with_player() {
 
 }
 
+void collision_with_bot() {
+  // ball_speed[0] = constrain(ball_pos[0]-bot_pos, -2, 2); 
+
+  ball_speed[1] = -ball_speed[1];
+  // if(ball_speed[1] < 0)
+  //   ball_speed[1] = -(speed - abs(ball_speed[0]));
+  // else ball_speed[1] = (speed - abs(ball_speed[0]));
+}
+
 void check_collision() {
-  if(ball_speed[1] > 0 && ball_pos[1] >= 125) ball_speed[1] = -ball_speed[1];
+  // if(ball_speed[1] > 0 && ball_pos[1] >= 125) ball_speed[1] = -ball_speed[1];
   if(ball_speed[0] > 0 && ball_pos[0] >= 125) ball_speed[0] = -ball_speed[0];
   if(ball_speed[0] < 0 && ball_pos[0] <= 3) ball_speed[0] = -ball_speed[0];
 
   if(ball_pos[1] < 40) {
-    //check player collision
     if(ball_speed[1] < 0 && (ball_pos[1] <=16 && ball_pos[1] > 12) && abs(ball_pos[0]-player_pos) <= 13) collision_with_player();
-  } else {
+  }
+  if(ball_pos[1] > 80 ) {
+    //check player collision
+    if(ball_speed[1] > 0 && (ball_pos[1] >=116 && ball_pos[1] < 120) && abs(ball_pos[0]-bot_pos) <= 13) collision_with_bot();
+  }     //check player collision
+  else{
     //check block collision
     // bool tl=false, tr=false, bl=false, br=false;
     // if(blocks[(127-ball_pos[1]-3)/8]&(1<<((ball_pos[0]-3)/8))) {
@@ -162,6 +191,14 @@ void check_collision() {
     Serial.println(127-ball_pos[1]);
   }
 }
+
+// void if_boundary(){
+// if (ball_pos[0]<2 || ball_pos[0]>122)
+//   {ball_pos[0]=64;
+//   ball_pos[1]=64;
+//   delay(2200);}
+// }
+
 
 void render_block(uint8_t x, uint8_t y) {
   my_lcd.Set_Draw_color(0xFFFF);
@@ -186,13 +223,55 @@ void render_score() {
   my_lcd.Print_Number_Int(score, 0, 0, 0, ' ',10);
 }
 
-void start_game() {
-  for(int i=64-8;i<=64+8;i++) {
-    my_lcd.Draw_Pixe(i, 10, 0xFFFF);
-    my_lcd.Draw_Pixe(i, 11, 0xFFFF);
+//Trying to make a bot
+void render_bot() {
+
+// if (abs(bot_pos - ball_pos[0]) > 4)
+  if (ball_pos[0] - bot_pos > 4)
+    new_bot_pos = bot_pos + 4;
+  else if (ball_pos[0] - bot_pos < 4)
+    new_bot_pos = bot_pos - 4;
+  else
+    return;
+  
+  for(int i=bot_pos-8;i<=bot_pos+8;i++) {
+    if(new_bot_pos-i > 8 || new_bot_pos-i < -8) {
+      my_lcd.Draw_Pixe(i, 120, 0x0000);
+      my_lcd.Draw_Pixe(i, 121, 0x0000);
+    }
   }
-  delay(1000);
-}
+  for(int i=new_bot_pos-8;i<=new_bot_pos+8;i++) {
+      if(i-bot_pos > 8 || i-bot_pos < -8) {
+        my_lcd.Draw_Pixe(i, 120, 0xF0F0);
+        my_lcd.Draw_Pixe(i, 121, 0xF0F0);
+      }
+    }
+
+    bot_pos = new_bot_pos;  
+    Serial.println(bot_pos);
+  }
+
+
+// void render_player() {
+//   for(int i=player_pos-8;i<=player_pos+8;i++) {
+//     if(player_input-i > 8 || player_input-i < -8) {
+//       my_lcd.Draw_Pixe(i, 10, 0x0000);
+//       my_lcd.Draw_Pixe(i, 11, 0x0000);
+//     }
+//   }
+//   for(int i=player_input-8;i<=player_input+8;i++) {
+//     if(i-player_pos > 8 || i-player_pos < -8) {
+//       my_lcd.Draw_Pixe(i, 10, 0xFFFF);
+//       my_lcd.Draw_Pixe(i, 11, 0xFFFF);
+//     }
+//   }
+  
+//   player_pos = player_input;  
+// }
+
+//Ending bot
+
+
 
 void tick() {
   if(!clock) {
@@ -209,7 +288,9 @@ void loop() {
   get_input();
   render_ball(ball_pos[0]+ball_speed[0], ball_pos[1]+ball_speed[1]);
   render_player();
+  render_bot();
   check_collision();
+  // if_boundary();
   // render_score();
   clock++;
   delay(10);
