@@ -1,0 +1,49 @@
+Team ID:-44
+This is a game project based on arduino uno.The components used are Arduino UNO,ADXL345 Accelerometer and Color LCD TFT Display.
+Our game project is a self or modified version of ping pong.It is single player game,the opponent is a bot.The judging criteria is 5 points,as soon as player or bot makes 5 points then winner is prompted.Now screen again resets to start screen.The game continues...Enjoy the game.To run the code you need to install LCDWIKI_GUI and LCDWIKI_SUI libraries and make appropriate connections.
+
+PLAYER=BLUE;
+BOT=RED;
+
+The detailed documentation is:-
+First we included the required libraries:-
+#include <LCDWIKI_GUI.h>
+#include <LCDWIKI_SPI.h>
+
+Then we defined LCD model and other pins to analog pins.Then my_lcd is called from the library.Then we defined some global variables to track the input of the accelerometer as Player Input and a player position and the bot position and then initial ball coordinates and initial ball speed and position store variables.
+Now we worked accelerometer is given the register address and then void get_input() is called it takes the input from the accelerometer we are collecting the X coordinates and according we will use our player to shift.Getting the Xout and using the low pass filter to smoothen the movement of the player board.
+
+The functionality of start_game function:-
+	it initialises everything brings ball,player and bot with colors.
+
+In void setup:-
+	initialised the LCD,given some parameters to accelerometer to correct the errors,rotated the LCD so that scores can be printed correctly.
+
+In render_player function:-
+	it does everything to player,it's movement is controlled by this.
+
+In point_in_ball function:-
+	we are basically taking the pixels of ball.
+In render_ball function:-
+	we are making our,controlling all movements of it.
+
+Next we wrote the collision function of ball with bot and player.
+
+If ball goes out of boundary clear ball and give initial positions of the ball.
+
+Next we are calculating scores of bot and player.
+
+Next check_collision is used to check the collision is happened or not.
+
+render_score function is used to change score on display.
+
+Now if_win checks whether score of bot or player reached 5 or not.
+
+render bot controls all the display functions of bot.
+
+in void loop every functiion is called and according it works.
+based on scoring the winning prompt is given.
+at last screen is blacked.
+
+Enjoy the game....
+
