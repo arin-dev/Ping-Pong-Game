@@ -23,12 +23,10 @@ uint8_t player_input = 64;
 uint8_t player_pos = 64;
 uint8_t bot_pos = 64;
 uint8_t new_bot_pos = 0;
-uint8_t ball_pos[2] = {64, 64};
+uint8_t ball_pos[2] = {64,15};
 int8_t ball_speed[2] = {0, 3};
 float pos_store = 0;
-// uint8_t clock = 0;
 uint8_t speed = 3;
-// uint8_t blocks[8] = {0};
 int player_score = 0;
 int bot_score = 0;
 
@@ -44,9 +42,6 @@ void get_input() {
   X_out = (0.05*X_out/256 + 0.95*pos_store);
   pos_store = X_out;
   player_input = min(max(15, 64 - (int)(500*X_out)), 115);
-  // Serial.print("Xa= ");
-  // Serial.println(X_out);
-  // Serial.println(player_input);   
 }
 
 void start_game() {
@@ -114,15 +109,7 @@ void setup() {
   my_lcd.Set_Draw_color(WHITE);
   my_lcd.Set_Text_Back_colour(BLACK);
 
-  // blocks[0] = 0b00000000;
-  // blocks[1] = 0b00000000;
-  // blocks[2] = 0b00000000;
-  // blocks[3] = 0b01001000;
-  // blocks[4] = 0b00000000;
-
   delay(1000);
-  // start_game();
-  
 }
 
 void render_player() {
@@ -188,6 +175,12 @@ void collision_with_player() {
     ball_speed[1] = -(speed - abs(ball_speed[0]));
   else ball_speed[1] = (speed - abs(ball_speed[0]));
 
+  // // To remake the player after collision 
+  // for(int i=player_pos-8;i<=player_pos+8;i++) {
+  //     my_lcd.Draw_Pixe(i, 110, BLUE);
+  //     my_lcd.Draw_Pixe(i, 111, BLUE);
+  // }
+
 }
 
 void collision_with_bot() {
@@ -201,10 +194,10 @@ void clear_ball()
         my_lcd.Draw_Pixe(i, j, BLACK);        
       }
     }
-    ball_pos[1]=64;
-    ball_pos[0]=64;
-    // ball_speed[0]=3;
-    ball_speed[1]=3;
+    ball_pos[0] = 64;
+    ball_pos[1] = 15;
+    ball_speed[0] = 0;
+    ball_speed[1] = 3;
 }
 
 void playerscore(){
@@ -213,84 +206,41 @@ void playerscore(){
 }
 
 void botscore(){
-    for(int i=ball_pos[0]-3;i<=ball_pos[0]+3;i++) {
-    for(int j=ball_pos[1]-3;j<=ball_pos[1]+3;j++) {
-        my_lcd.Draw_Pixe(i, j, BLACK);        
-      }
-    }
-    ball_pos[1]=64;
-    ball_pos[0]=64;
-    // ball_speed[0]=3;
-    ball_speed[1]=3;
-
+    clear_ball();
     bot_score++;
 }
 void check_collision() {
-  // if(ball_speed[1] > 0 && ball_pos[1] >= 125) ball_speed[1] = -ball_speed[1];
-  if(ball_speed[0] > 0 && ball_pos[0] >= 125) ball_speed[0] = -ball_speed[0];
-  if(ball_speed[0] < 0 && ball_pos[0] <= 3) ball_speed[0] = -ball_speed[0];
+  if(ball_speed[0] > 0 && ball_pos[0] >= 125) ball_speed[0] = -ball_speed[0]; // Checking collisions with wall and reflecting
+  if(ball_speed[0] < 0 && ball_pos[0] <= 3) ball_speed[0] = -ball_speed[0]; // Checking collisions with wall and reflecting
 
   if(ball_pos[1] < 40) {
-    if(ball_speed[1] < 0 && (ball_pos[1] <=16 && ball_pos[1] > 12) && abs(ball_pos[0]-bot_pos) <= 13) collision_with_bot();
+    if(ball_speed[1] < 0 && (ball_pos[1] <=16 && ball_pos[1] > 12) && abs(ball_pos[0]-bot_pos) <= 13) collision_with_bot(); // Checking collisions with bot and reflecting
   }
   if(ball_pos[1] > 80 ) {
-    //check player collision
-    if(ball_speed[1] > 0 && (ball_pos[1] >=106 && ball_pos[1] < 110) && abs(ball_pos[0]-player_pos) <= 13) collision_with_player();
-  }     //check player collision
+    if(ball_speed[1] > 0 && (ball_pos[1] >=104 && ball_pos[1] < 108) && abs(ball_pos[0]-player_pos) <= 13) collision_with_player(); // Checking collisions with player and reflecting
+  }
   if(ball_pos[1]<4)
   {
-    playerscore();
-    // ball_speed[1]=3;
+    playerscore(); //If miss by player will increase bot's score
   }
   if(ball_pos[1]>122)
   {
-    botscore();
-    // ball_speed[1]=3;
+    botscore(); //If miss by bot will increase bot's score
   }
   else{
-    //check block collision
-    // bool tl=false, tr=false, bl=false, br=false;
-    // if(blocks[(127-ball_pos[1]-3)/8]&(1<<((ball_pos[0]-3)/8))) {
-    //   blocks[(127-ball_pos[1]-3)/8] &= (1<<9 - 1) - (1<<((ball_pos[0]-3)/8));
-    // }
+
     Serial.println(127-ball_pos[1]);
   }
 }
 
-// void if_boundary(){
-// if (ball_pos[0]<2 || ball_pos[0]>122)
-//   {ball_pos[0]=64;
-//   ball_pos[1]=64;
-//   delay(2200);}
-// }
-
-
-// void render_block(uint8_t x, uint8_t y) {
-//   my_lcd.Set_Draw_color(WHITE);
-//   my_lcd.Draw_Rectangle(112-x, 120-y, 127-x, 127-y);
-// }
-
-// void remove_block(uint8_t x, uint8_t y) {
-//   my_lcd.Set_Draw_color(BLACK);
-//   my_lcd.Draw_Rectangle(112-x, 120-y, 127-x, 127-y);
-// }
-
-// void render_grid() {
-//   for(uint8_t i=0;i<8;i++) {
-//     for(uint8_t j=0;j<8;j++) {
-//       if(blocks[i]&(1<<j)) render_block(16*j, 8*i);
-//     }
-//   }
-// }
-
 void render_score() {
   my_lcd.Set_Text_colour(BLUE);
   my_lcd.Set_Text_Size(1);
-  my_lcd.Print_String(String(player_score), 115, 64);
+  my_lcd.Print_String(String(player_score), 115, 60);
 
   my_lcd.Set_Text_colour(RED);
   my_lcd.Set_Text_Size(1);
-  my_lcd.Print_String(String(bot_score), 5, 64);
+  my_lcd.Print_String(String(bot_score), 5, 60);
 }
 
 int if_win(){
@@ -301,16 +251,15 @@ int if_win(){
 }
 
 
-//Trying to make a bot
+//Making bot
 int run = 0;
 void render_bot() {
-  if(run<1)
+  if(run<1) // To reduce reaction time of bot
   {
     run++;
   }
   else{
     run = 0;
-  // if (abs(bot_pos - ball_pos[0]) > 4)
     if (ball_pos[0] - bot_pos > 3 && ball_pos[0] < 118 && bot_pos + 3 < 115)
       new_bot_pos = bot_pos + 4 ;
     else if (ball_pos[0] - bot_pos < 4 && ball_pos[0] > 5 && bot_pos - 5 > 8)
@@ -335,16 +284,6 @@ void render_bot() {
   }
 //Ending bot
 
-
-
-// void tick() {
-//   if(!clock) {
-//     score++;
-//   }
-//   clock++;
-// }
-
-
 void loop() {
   //tick();
   start_game();
@@ -357,10 +296,6 @@ void loop() {
   render_bot();
   check_collision();
 
-  
-  // if_boundary();
-  // render_score();
-  // clock++;
   delay(10);}
 
   render_score();
@@ -371,28 +306,16 @@ void loop() {
   { my_lcd.Set_Text_colour(CYAN);
     my_lcd.Set_Text_Size(2);
     my_lcd.Print_String("YOU WIN!", 15, 50);
-    
-  delay(2000);
-  
-  // my_lcd.Set_Text_colour(BLACK);
-  // my_lcd.Set_Text_Size(2);
-  // my_lcd.Print_String("YOU WIN!", 20, 50);
   }
   else
   {
   my_lcd.Set_Text_colour(CYAN);
   my_lcd.Set_Text_Size(2);
   my_lcd.Print_String("YOU LOSE!", 15, 50);
-
-  delay(2000);
-  // my_lcd.Set_Text_colour(BLACK);
-  // my_lcd.Set_Text_Size(2);
-  // my_lcd.Print_String("YOU LOSE!", 20, 50);
-
   }
+  delay(2000);
   player_input = 64;
 
   my_lcd.Fill_Screen(BLACK);
 
 }
-
